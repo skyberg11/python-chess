@@ -6,7 +6,7 @@ chess.start_game(board)
 # map = board.get_map()
 
 # for i in range(8):
-#     for j in range(8):
+#     for j in range(8):A
 #         if(map[i][i] is not None):
 #             if(map[i][j].party == chess.Party.White):
 #                 print("\033[34m{}".format(map[i][j].name), end='')

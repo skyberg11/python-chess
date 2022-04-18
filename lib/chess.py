@@ -27,7 +27,7 @@ class Board():
     
     def setup(self):
         pawn = Chessmen(Party.White, FigureType.Finite, "p", 1)
-        pawn.set_finite_moves((1, 0))
+        pawn.set_finite_moves((1, 0), (1, 1), (1, -1))
 
         knight = Chessmen(Party.White, FigureType.Finite, "k", 3)
         knight.set_finite_moves((2, 1), (1, 2), (-1, 2), (-2, 1),
@@ -43,13 +43,14 @@ class Board():
         queen.set_vectors((1, -1), (1, 1), (-1, 1), (-1, -1),
                             (1, 0), (0, 1), (-1 ,0), (0, -1))
 
-        king = Chessmen(Party.White, FigureType.Finite, "k", math.inf)
+        king = Chessmen(Party.White, FigureType.Finite, "o", math.inf)
         king.set_finite_moves((1, -1), (1, 1), (-1, 1), (-1, -1),
                                 (1, 0), (0, 1), (-1 ,0), (0, -1))
 
         self.__fill__(pawn, knight, bishop, rook, queen, king, Party.White)
 
         pawn.set_team(Party.Black)
+        pawn.set_finite_moves((-1, 0), (-1, 1), (-1, -1))
         knight.set_team(Party.Black)
         bishop.set_team(Party.Black)
         rook.set_team(Party.Black)
@@ -73,7 +74,7 @@ class Board():
     def print_board(self):
         for i in range(8):
             for j in range(8):
-                if(self.__board[i][i] is not None):
+                if(self.__board[i][j] is not None):
                     if(self.__board[i][j].party == Party.White):
                         print("\033[34m{}".format(self.__board[i][j].name), end='')
                     else:
@@ -86,16 +87,63 @@ class Board():
         return self.__board[cell[0]][cell[1]]
 
     def relocate(self, target, to):
+        self.__board[to[0]][to[1]] = self.__board[target[0]][target[1]]
+        self.__board[target[0]][target[1]] = None
         return
+
+    def king_position(self, party):
+        for i in range(8):
+            for j in range(8):
+                if(self.__board[i][j] is not None and self.__board[i][j].name == "o"
+                    and self.__board[i][j].party == party):
+                    return (i, j)
+
+    def get_first_on_vector(self, place, vector):
+        if(is_out_of_range(place)):
+            return None
+        place = (place[0] + vector[0], place[1] + vector[1])
+        if(place is not None):
+            return self.get_chessman(place)
+        else:
+            return self.get_first_on_vector(place, vector)
+
+def is_out_of_range(place):
+    return place[0] < 0 or place[0] > 7 or place[1] < 0 or place[1] > 7
 
 def move(board, current_party):
     try:
         print("Your move:")
         place, to = interface.get_move(current_party)
-        chessanalytics.check_move(place, to, current_party)
+        chessanalytics.check_move(board, current_party, place, to)
     except exceptions.OutOfRange:
-        print("")
-
+        print("Your move is out of range. Try again")
+        move(board, current_party)
+        return  
+    except exceptions.IncorrectMove:
+        print("Bad move. Try again")
+        move(board, current_party)
+        return      
+    except exceptions.IncorrectFigure:
+        print("It is not your figure. Try again")
+        move(board, current_party)
+        return  
+    except exceptions.LazyMove:
+        print("You must move. Try again")
+        move(board, current_party)
+        return  
+    except exceptions.SelfHarm:
+        print("Do not eat yourself. Try again")
+        move(board, current_party)
+        return  
+    except exceptions.Check:
+        print("Your move is resulting in check.Try again")
+        move(board, current_party)
+        return  
+    except Exception:
+        print("Unknown error. Try again")
+        move(board, current_party)
+        return
+    board.relocate(place, to)    
 
 def start_game(board, current_party=Party.White):
     print("Game has started")
