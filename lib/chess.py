@@ -151,6 +151,8 @@ def start_game(board, current_party=Party.White):
         print("Moves {}".format(current_party))
         board.print_board()
         move(board, current_party)
+        if(chessanalytics.is_check(board, next_move(current_party))):
+            print("Check.")
         if(chessanalytics.is_mate(board, next_move(current_party))):
             print("Mate.")
             print("Player on {} wins the game".format(current_party))
