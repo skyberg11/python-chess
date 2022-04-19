@@ -17,11 +17,11 @@ class Save():
     def get_save(dir):
         party = None
         lines = []
-        dir = os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/saves", dir)
+        dir = os.path.join(os.getcwd() + "/saves", dir)
         with open(dir, 'r') as f:
-            lines = " ".join(line.strip() for line in f) 
+            lines = f.readlines()
         name = lines[0]
-        if(lines[1] == '0'):
+        if(lines[1] == '1'):
             party = Party.White
         else:
             party = Party.Black
@@ -30,14 +30,14 @@ class Save():
             l = lines[i].split()
             if(len(l) <= 3):
                 continue
-            chessman = Board.get_figure(l[3], l[2])
+            chessman = Board.get_figure(l[3], int(l[2]))
             chessman.moved = bool(l[4])
             board._Board__board[int(l[0])][int(l[1])] = copy.copy(chessman)
         return Save(board, name, party)
                 
     def get_all_saves():
         saves = []
-        path = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/saves"
+        path = os.getcwd() + "/saves"
         for root, dirs, files in os.walk(path):
             for file in files:
                 saves.append(file)
@@ -79,7 +79,7 @@ class Board():
                                 (1, 0), (0, 1), (-1 ,0), (0, -1))   
         if(team == Party.Black):
             figure.set_team(Party.Black)
-        return copy.copy(figure)
+        return figure
     
     def __fill__(self, party):
         pawn = Board.get_figure('p', party)
@@ -202,8 +202,8 @@ def move(board, current_party):
         print("Enter the name of the save:")
         line = input()
         original_stdout = sys.stdout
-        path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-        with open(os.path.join(path, "saves/" + line + ".save"), 'w') as f:
+        path = os.getcwd()
+        with open(os.path.join(path, os.path.join("saves", line + ".save")), 'w') as f:
             sys.stdout = f
             print(line)
             print(int(current_party))
