@@ -2,6 +2,7 @@ from lib import exceptions, chessmen, chess
 import copy
 
 
+
 def get_all_positions(board, party):
     boards = []
     for i in range(8):
@@ -19,11 +20,14 @@ def get_all_positions(board, party):
                         boards.append(new_board)
     return boards
 
+
 def is_check(board, king_party):
     king_pos = board.king_position(king_party)
     current = king_pos
-    check = lambda chessman, king_party, figures: ((chessman is not None and chessman.party != king_party) and
-        (chessman.name in figures))
+
+    def check(chessman, king_party, figures): return (
+        (chessman is not None and chessman.party != king_party) and (
+            chessman.name in figures))
     chessman = board.get_first_on_vector(current, (-1, 0))
     if(check(chessman, king_party, ['q', 'r'])):
         return True
@@ -48,7 +52,8 @@ def is_check(board, king_party):
     chessman = board.get_first_on_vector(current, (1, -1))
     if(check(chessman, king_party, ['q', 'b'])):
         return True
-    change = lambda a, b: (a[0] + b[0], a[1] + b[1])
+
+    def change(a, b): return (a[0] + b[0], a[1] + b[1])
     # (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1) knight-00
     chessman = board.get_chessman(change(current, (2, 1)))
     if(check(chessman, king_party, ['n'])):
@@ -88,20 +93,23 @@ def is_check(board, king_party):
             return True
         chessman = board.get_chessman(change(current, (1, 1)))
         if(check(chessman, king_party, ['p'])):
-            return True     
+            return True
     return False
+
 
 def is_mate(board, king_party):
     all_boards = get_all_positions(board, king_party)
     for new_board in all_boards:
         if(not is_check(new_board, king_party)):
             return False
-    return True        
+    return True
+
 
 def is_stalemate(board, current_party):
     if(len(get_all_positions(board, current_party)) == 0):
         return True
     return False
+
 
 def check_move(board, current_party, place, to):
     if(chess.is_out_of_range(place) or chess.is_out_of_range(to)):
@@ -127,15 +135,15 @@ def check_move(board, current_party, place, to):
 
     if(is_check(new_board, current_party)):
         raise exceptions.Check
-    
-    change = lambda a, b: (a[0] + b[0], a[1] + b[1])
-    delta = lambda a, b: (a[0] - b[0], a[1] - b[1])
+
+    def change(a, b): return (a[0] + b[0], a[1] + b[1])
+    def delta(a, b): return (a[0] - b[0], a[1] - b[1])
 
     if(chessman.name == 'p'):
         for move in chessman.moves:
             if(change(place, move) == to):
                 if(move[1] != 0 and target is not None and target.party == chessmen.next_move(current_party)):
-                    return 
+                    return
                 elif(move[1] == 0 and target is None):
                     return
                 else:
@@ -158,7 +166,7 @@ def check_move(board, current_party, place, to):
             if(vector[1] != 0):
                 k2 = diff[1] // vector[1]
             elif(diff[1] != 0):
-                continue    
+                continue
             if(k1 is None):
                 if(k2 > 0):
                     direction = vector
@@ -180,6 +188,6 @@ def check_move(board, current_party, place, to):
                 chessman = board.get_chessman(cur)
                 if(chessman is not None):
                     raise exceptions.IncorrectMove
-                cur = delta(cur, direction)    
-            return 
+                cur = delta(cur, direction)
+            return
     raise exceptions.IncorrectMove
