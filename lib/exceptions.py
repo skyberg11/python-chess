@@ -21,3 +21,15 @@ class IncorrectFigure(Exception):
 class IncorrectMove(Exception):
     """Raised when the move is incorrect"""
     pass
+
+class Surrender(Exception):
+    """Raised when the player gave up"""
+    pass
+
+class Board(Exception):
+    """Raised when the player wants to see a board"""
+    pass
+
+class Save(Exception):
+    """Raised when the player wants to save a game"""
+    pass

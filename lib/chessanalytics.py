@@ -51,29 +51,29 @@ def is_check(board, king_party):
     change = lambda a, b: (a[0] + b[0], a[1] + b[1])
     # (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1) knight-00
     chessman = board.get_chessman(change(current, (2, 1)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (1, 2)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (-1, 2)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (-2, 1)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (-2, -1)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (-1, -2)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     chessman = board.get_chessman(change(current, (1, -2)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
 
     chessman = board.get_chessman(change(current, (2, -1)))
-    if(check(chessman, king_party, ['k'])):
+    if(check(chessman, king_party, ['n'])):
         return True
     if(king_party == chess.Party.Black):
         chessman = board.get_chessman(change(current, (-1, -1)))

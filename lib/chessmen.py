@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import IntEnum
 
-class FigureType(Enum):
+class FigureType(IntEnum):
     VectorStroke = 1
     Finite = 2
 
-class Party(Enum):
+class Party(IntEnum):
     White = 1
     Black = 2
 
@@ -23,6 +23,7 @@ class Chessmen:
         self.figure_type = figure_type
         self.name = name
         self.cost = cost
+        self.moved = False
 
     def set_vectors(self, *vectors):
         self.vectors = vectors

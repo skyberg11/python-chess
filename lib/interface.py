@@ -1,20 +1,20 @@
-from lib import chessmen, chess
+from lib import chessmen, chess, exceptions
 from PyQt5 import QtCore, QtGui, QtWidgets
 import string
 import copy
 import sys
 
 piece_map = {('p', chessmen.Party.White) : 'data/pawn_light.svg',
-             ('k', chessmen.Party.White) : 'data/knight_light.svg',
+             ('n', chessmen.Party.White) : 'data/knight_light.svg',
              ('b', chessmen.Party.White) : 'data/bishop_light.svg',
              ('q', chessmen.Party.White) : 'data/queen_light.svg',
-             ('o', chessmen.Party.White) : 'data/king_light.svg',
+             ('k', chessmen.Party.White) : 'data/king_light.svg',
              ('r', chessmen.Party.White) : 'data/rook_light.svg',
              ('p', chessmen.Party.Black) : 'data/pawn_dark.svg',
-             ('k', chessmen.Party.Black) : 'data/knight_dark.svg',
+             ('n', chessmen.Party.Black) : 'data/knight_dark.svg',
              ('b', chessmen.Party.Black) : 'data/bishop_dark.svg',
              ('q', chessmen.Party.Black) : 'data/queen_dark.svg',
-             ('o', chessmen.Party.Black) : 'data/king_dark.svg',
+             ('k', chessmen.Party.Black) : 'data/king_dark.svg',
              ('r', chessmen.Party.Black) : 'data/rook_dark.svg'}
 
 class Piece(QtWidgets.QWidget):
@@ -53,7 +53,7 @@ class Board(QtWidgets.QWidget):
         layout.removeWidget(layout.itemAtPosition(place[0], place[1]).widget())
         layout.removeWidget(layout.itemAtPosition(to[0], to[1]).widget())
         layout.addWidget(temp, to[0], to[1])
-        
+    
     def minimumSizeHint(self):
         return QtCore.QSize(256, 256)
 
@@ -87,14 +87,33 @@ class ChessGame(QtWidgets.QMainWindow):
         self.board.relocate(place, to)
         QtCore.QThread.emit(SIGNAL("idle"))
 
-def get_move(current_party):
-    place, to = input().translate({ord(c): 
-        None for c in string.whitespace}).split("->")
-    place = place.lower()
-    to = to.lower()
-    place = (ord(place[0]) - 97, ord(place[1]) - 49)
-    place = (7 - place[1], place[0])
-    to = (ord(to[0]) - 97, ord(to[1]) - 49)
-    to = (7 - to[1], to[0])
+def help():
+    print("You can make a step like \"A1->B2\"")
+    print("You can resign like \"surrender\"")
+    print("You can see the current board \"board\"")
+    print("You can save the game \"save")
 
-    return (place, to)
+def get_move(current_party):
+    line = input()
+    if(line == "help"):
+        help()
+        get_move(current_party)
+    elif(line == "surrender"):
+        raise exceptions.Surrender
+    elif(line == "board"):
+        raise exceptions.Board
+    elif(line == "save"):
+        raise exceptions.Save
+    else:
+        try:
+            place, to = line.translate({ord(c): 
+                None for c in string.whitespace}).split("->")
+            place = place.lower()
+            to = to.lower()
+            place = (ord(place[0]) - 97, ord(place[1]) - 49)
+            place = (place[1], place[0])
+            to = (ord(to[0]) - 97, ord(to[1]) - 49)
+            to = (to[1], to[0])
+            return (place, to)
+        except:
+            raise exceptions.IncorrectMove    
