@@ -1,5 +1,12 @@
 from lib import chess
+from PyQt5 import QtCore, QtGui, QtWidgets
+from lib import interface
+import sys
 
+app = QtWidgets.QApplication(sys.argv)
+game = ChessGame()
+
+game.show()
 board = chess.Board()
 board.setup()
 chess.start_game(board)

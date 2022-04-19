@@ -147,18 +147,18 @@ def start_game(board, current_party=Party.White):
     print("Game has started")
     while(True):
         print("Moves {}".format(current_party))
-        board.print_board()
-        move(board, current_party)
-        if(chessanalytics.is_check(board, next_move(current_party))):
+        if(chessanalytics.is_check(board, current_party)):
             print("Check.")
-        print("Not Check")
-        if(chessanalytics.is_mate(board, next_move(current_party))):
-            print("Mate.")
-            print("Player on {} wins the game".format(current_party))
+            if(chessanalytics.is_mate(board, current_party)):
+                print("Mate.")
+                print("Player on {} wins the game".format(next_move(current_party)))
             return
+        print("Not Check")
         print("NotMate")
         if(chessanalytics.is_stalemate(board, current_party)):
             print("Stalemate.")
             print("Player on {} just stalemated the game".format(current_party))
             return
+        board.print_board()
+        move(board, current_party)
         current_party = next_move(current_party)

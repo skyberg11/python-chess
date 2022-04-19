@@ -10,7 +10,7 @@ def get_all_positions(board, party):
                 for j1 in range(8):
                     if((board.get_chessman((i, j)) is not None and board.get_chessman((i, j)).party == party)):
                         try:
-                            print(i,j,i1,j1)
+                            # DEBUG print(i,j,i1,j1)
                             check_move(board, party, (i, j), (i1, j1))
                         except Exception:
                             continue
@@ -38,19 +38,19 @@ def is_check(board, king_party):
     if(check(chessman, king_party, ['q', 'r'])):
         return True
     chessman = board.get_first_on_vector(current, (-1, 1))
-    if(check(chessman, king_party, ['b'])):
+    if(check(chessman, king_party, ['q', 'b'])):
         return True
     chessman = board.get_first_on_vector(current, (1, 1))
-    if(check(chessman, king_party, ['b'])):
+    if(check(chessman, king_party, ['q', 'b'])):
         return True
     chessman = board.get_first_on_vector(current, (-1, -1))
-    if(check(chessman, king_party, ['b'])):
+    if(check(chessman, king_party, ['q', 'b'])):
         return True
     chessman = board.get_first_on_vector(current, (1, -1))
-    if(check(chessman, king_party, ['b'])):
+    if(check(chessman, king_party, ['q', 'b'])):
         return True
     change = lambda a, b: (a[0] + b[0], a[1] + b[1])
-    # (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)
+    # (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1) knight-00
     chessman = board.get_chessman(change(current, (2, 1)))
     if(check(chessman, king_party, ['k'])):
         return True
@@ -72,6 +72,7 @@ def is_check(board, king_party):
     chessman = board.get_chessman(change(current, (1, -2)))
     if(check(chessman, king_party, ['k'])):
         return True
+
     chessman = board.get_chessman(change(current, (2, -1)))
     if(check(chessman, king_party, ['k'])):
         return True
