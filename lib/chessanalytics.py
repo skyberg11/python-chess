@@ -8,10 +8,15 @@ def get_all_positions(board, party):
         for j in range(8):
             for i1 in range(8):
                 for j1 in range(8):
-                    if((board.get_chessman((i, j)) is not None and board.get_chessman((i, j)).party == party)
-                        and (check_move(board, party, (i, j), (i1, j1)))):
+                    if((board.get_chessman((i, j)) is not None and board.get_chessman((i, j)).party == party)):
+                        try:
+                            print(i,j,i1,j1)
+                            check_move(board, party, (i, j), (i1, j1))
+                        except Exception:
+                            continue
                         new_board = copy.deepcopy(board)
                         new_board.relocate((i, j), (i1, j1))
+                        new_board.print_board()
                         boards.append(new_board)
     return boards
 
@@ -19,7 +24,7 @@ def is_check(board, king_party):
     king_pos = board.king_position(king_party)
     current = king_pos
     check = lambda chessman, king_party, figures: ((chessman is not None and chessman.party != king_party) and
-        (chessman.name not in figures))
+        (chessman.name in figures))
     chessman = board.get_first_on_vector(current, (-1, 0))
     if(check(chessman, king_party, ['q', 'r'])):
         return True
@@ -44,7 +49,6 @@ def is_check(board, king_party):
     chessman = board.get_first_on_vector(current, (1, -1))
     if(check(chessman, king_party, ['b'])):
         return True
-
     change = lambda a, b: (a[0] + b[0], a[1] + b[1])
     # (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)
     chessman = board.get_chessman(change(current, (2, 1)))
@@ -71,7 +75,6 @@ def is_check(board, king_party):
     chessman = board.get_chessman(change(current, (2, -1)))
     if(check(chessman, king_party, ['k'])):
         return True
-
     if(king_party == chess.Party.Black):
         chessman = board.get_chessman(change(current, (-1, -1)))
         if(check(chessman, king_party, ['p'])):
@@ -85,7 +88,7 @@ def is_check(board, king_party):
             return True
         chessman = board.get_chessman(change(current, (1, 1)))
         if(check(chessman, king_party, ['p'])):
-            return True        
+            return True     
     return False
 
 def is_mate(board, king_party):
@@ -129,13 +132,14 @@ def check_move(board, current_party, place, to):
     delta = lambda a, b: (a[0] - b[0], a[1] - b[1])
 
     if(chessman.name == 'p'):
-        if(change(place, move) == to):
-            if(change(place, move)[1] != 0 and target.party == chessmen.next_move(current_party)):
-                return 
-            elif(change(place, move)[1] == 0 and target is None):
-                return
-            else:
-                raise exceptions.IncorrectMove
+        for move in chessman.moves:
+            if(change(place, move) == to):
+                if(move[1] != 0 and target is not None and target.party == chessmen.next_move(current_party)):
+                    return 
+                elif(move[1] == 0 and target is None):
+                    return
+                else:
+                    raise exceptions.IncorrectMove
 
     if(chessman.figure_type is chessmen.FigureType.Finite):
         for move in chessman.moves:
@@ -168,13 +172,15 @@ def check_move(board, current_party, place, to):
             else:
                 if(k1 == k2 and k1 > 0):
                     direction = vector
-            if(direction is None):
-                raise exceptions.IncorrectMove
-            else:
-                cur = change(place, vector)
-                while cur != to:
-                    chessman = board.get_chessman(cur)
-                    if(chessman is not None):
-                        raise exceptions.IncorrectMove
-                return 
+        if(direction is None):
+            raise exceptions.IncorrectMove
+        else:
+            cur = delta(place, direction)
+            print(direction)
+            while cur != to:
+                chessman = board.get_chessman(cur)
+                if(chessman is not None):
+                    raise exceptions.IncorrectMove
+                cur = delta(cur, direction)    
+            return 
     raise exceptions.IncorrectMove

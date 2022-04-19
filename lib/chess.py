@@ -84,6 +84,8 @@ class Board():
             print('\033[37m\n', end='')
 
     def get_chessman(self, cell):
+        if(is_out_of_range(cell)):
+            return None
         return self.__board[cell[0]][cell[1]]
 
     def relocate(self, target, to):
@@ -99,9 +101,9 @@ class Board():
                     return (i, j)
 
     def get_first_on_vector(self, place, vector):
+        place = (place[0] + vector[0], place[1] + vector[1])
         if(is_out_of_range(place)):
             return None
-        place = (place[0] + vector[0], place[1] + vector[1])
         if(place is not None):
             return self.get_chessman(place)
         else:
@@ -138,10 +140,6 @@ def move(board, current_party):
     except exceptions.Check:
         print("Your move is resulting in check.Try again")
         move(board, current_party)
-        return  
-    except Exception:
-        print("Unknown error. Try again")
-        move(board, current_party)
         return
     board.relocate(place, to)    
 
@@ -153,10 +151,12 @@ def start_game(board, current_party=Party.White):
         move(board, current_party)
         if(chessanalytics.is_check(board, next_move(current_party))):
             print("Check.")
+        print("Not Check")
         if(chessanalytics.is_mate(board, next_move(current_party))):
             print("Mate.")
             print("Player on {} wins the game".format(current_party))
             return
+        print("NotMate")
         if(chessanalytics.is_stalemate(board, current_party)):
             print("Stalemate.")
             print("Player on {} just stalemated the game".format(current_party))
