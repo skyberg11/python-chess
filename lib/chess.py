@@ -2,6 +2,8 @@ from lib.chessmen import Chessmen, Party, FigureType, next_move
 from PyQt5 import QtCore, QtGui, QtWidgets
 from lib import chessanalytics, interface, exceptions
 from prettytable import PrettyTable
+from tabulate import tabulate
+from colorama import init, Back, Fore
 import math
 import copy
 import sys
@@ -122,22 +124,19 @@ class Board():
         return map
 
     def print_board(self):
-        table = PrettyTable(['X', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
+        headers = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        table = [[None] * 8 for _ in range(8)]
         for i in range(8):
-            row = []
-            row.append(str(i + 1))
             for j in range(8):
+                bcolor = Back.BLACK if((i + j) % 2 == 0) else Back.BLUE
                 if(self.__board[i][j] is not None):
                     if(self.__board[i][j].party == Party.White):
-                        row.append(
-                            "\033[34m" + str(self.__board[i][j].name + "\033[37m"))
+                        table[i][j]=f"{Fore.WHITE}{bcolor}{str(self.__board[i][j].name)}{Back.RESET}{Fore.WHITE}"
                     else:
-                        row.append(
-                            "\033[31m" + str(self.__board[i][j].name + "\033[37m"))
+                        table[i][j]=f"{Fore.YELLOW}{bcolor}{str(self.__board[i][j].name)}{Back.RESET}{Fore.WHITE}"
                 else:
-                    row.append("\033[37m" + ".")
-            table.add_row(row)
-        print(table)
+                    table[i][j]=f"{Fore.WHITE}{bcolor}{'.'}{Back.RESET}"
+        print(tabulate(table, headers, tablefmt="pretty", showindex=list(range(1, 9))))
 
     def get_chessman(self, cell):
         if(is_out_of_range(cell)):
@@ -247,16 +246,16 @@ def start_game(board, current_party=Party.White):
                 print("Mate.")
                 print(
                     "Player on {} wins the game".format(
-                        next_move(current_party)))
+                        Party.string(next_move(current_party))))
                 return
         if(chessanalytics.is_stalemate(board, current_party)):
             print("Stalemate.")
-            print("Player on {} just stalemated the game".format(current_party))
+            print("Player on {} just stalemated the game".format(Party.string(current_party)))
             return
-        print("Moves {}".format(current_party))
+        print("Moves {}".format(Party.string(current_party)))
         try:
             move(board, current_party)
         except exceptions.Surrender:
-            print("Team {} resigned".format(current_party))
+            print("Team {} resigned".format(Party.string(current_party)))
             break
         current_party = next_move(current_party)

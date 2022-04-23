@@ -10,6 +10,11 @@ class FigureType(IntEnum):
 class Party(IntEnum):
     White = 1
     Black = 2
+    def string(a):
+        if(a == 1):
+            return "white"
+        else:
+            return "black"
 
 
 def next_move(party):
