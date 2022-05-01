@@ -1,16 +1,98 @@
 from lib.chessmen import Chessmen, Party, FigureType, next_move
+from PyQt5 import QtCore, QtGui, QtWidgets
 from lib import chessanalytics, interface, exceptions
+from prettytable import PrettyTable
+from tabulate import tabulate
+from colorama import init, Back, Fore
 import math
 import copy
+import sys
+import os
+
+
+
+class Save():
+    def __init__(self, board, name, party):
+        self.board = board
+        self.name = name
+        self.party = party
+
+    def get_save(dir):
+        party = None
+        lines = []
+        dir = os.path.join(os.getcwd() + "/saves", dir)
+        with open(dir, 'r') as f:
+            lines = f.readlines()
+        name = lines[0]
+        if(lines[1] == '1'):
+            party = Party.White
+        else:
+            party = Party.Black
+        board = Board()
+        for i in range(2, len(lines)):
+            l = lines[i].split()
+            if(len(l) <= 3):
+                continue
+            chessman = Board.get_figure(l[3], int(l[2]))
+            chessman.moved = bool(l[4])
+            board._Board__board[int(l[0])][int(l[1])] = copy.copy(chessman)
+        return Save(board, name, party)
+
+    def get_all_saves():
+        saves = []
+        path = os.getcwd() + "/saves"
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                saves.append(file)
+        return saves
+
 
 class Board():
     """Implementation of chess board in python"""
+
     def __init__(self):
         self.__board = []
         for i in range(8):
             self.__board.append([None] * 8)
 
-    def __fill__(self, pawn, knight, bishop, rook, queen, king, party):
+    def get_figure(name, team):
+        figure = None
+        if(name == 'p'):
+            figure = Chessmen(Party.White, FigureType.Finite, "p", 1)
+            if(team == Party.White):
+                figure.set_finite_moves((1, 0), (1, 1), (1, -1), (2, 0))
+            else:
+                figure.set_team(Party.Black)
+                figure.set_finite_moves((-1, 0), (-1, 1), (-1, -1), (-2, 0))
+        if(name == 'n'):
+            figure = Chessmen(Party.White, FigureType.Finite, "n", 3)
+            figure.set_finite_moves((2, 1), (1, 2), (-1, 2), (-2, 1),
+                                    (-2, -1), (-1, -2), (1, -2), (2, -1))
+        if(name == 'b'):
+            figure = Chessmen(Party.White, FigureType.VectorStroke, "b", 3)
+            figure.set_vectors((1, -1), (1, 1), (-1, 1), (-1, -1))
+        if(name == 'r'):
+            figure = Chessmen(Party.White, FigureType.VectorStroke, "r", 5)
+            figure.set_vectors((1, 0), (0, 1), (-1, 0), (0, -1))
+        if(name == 'q'):
+            figure = Chessmen(Party.White, FigureType.VectorStroke, "q", 9)
+            figure.set_vectors((1, -1), (1, 1), (-1, 1), (-1, -1),
+                               (1, 0), (0, 1), (-1, 0), (0, -1))
+        if(name == 'k'):
+            figure = Chessmen(Party.White, FigureType.Finite, "k", math.inf)
+            figure.set_finite_moves((1, -1), (1, 1), (-1, 1), (-1, -1),
+                                    (1, 0), (0, 1), (-1, 0), (0, -1))
+        if(team == Party.Black):
+            figure.set_team(Party.Black)
+        return figure
+
+    def __fill__(self, party):
+        pawn = Board.get_figure('p', party)
+        rook = Board.get_figure('r', party)
+        queen = Board.get_figure('q', party)
+        knight = Board.get_figure('n', party)
+        king = Board.get_figure('k', party)
+        bishop = Board.get_figure('b', party)
         first_row = 0
         if(party == Party.Black):
             first_row = 7
@@ -24,39 +106,10 @@ class Board():
         self.__board[first_row][5] = copy.copy(bishop)
         self.__board[first_row][3] = copy.copy(queen)
         self.__board[first_row][4] = copy.copy(king)
-    
+
     def setup(self):
-        pawn = Chessmen(Party.White, FigureType.Finite, "p", 1)
-        pawn.set_finite_moves((1, 0))
-
-        knight = Chessmen(Party.White, FigureType.Finite, "k", 3)
-        knight.set_finite_moves((2, 1), (1, 2), (-1, 2), (-2, 1),
-                            (-2, -1), (-1, -2), (1, -2), (2, -1))
-
-        bishop = Chessmen(Party.White, FigureType.VectorStroke, "b", 3)
-        bishop.set_vectors((1, -1), (1, 1), (-1, 1), (-1, -1))
-
-        rook = Chessmen(Party.White, FigureType.VectorStroke, "r", 5)
-        rook.set_vectors((1, 0), (0, 1), (-1 ,0), (0, -1))
-
-        queen = Chessmen(Party.White, FigureType.VectorStroke, "q", 9)
-        queen.set_vectors((1, -1), (1, 1), (-1, 1), (-1, -1),
-                            (1, 0), (0, 1), (-1 ,0), (0, -1))
-
-        king = Chessmen(Party.White, FigureType.Finite, "k", math.inf)
-        king.set_finite_moves((1, -1), (1, 1), (-1, 1), (-1, -1),
-                                (1, 0), (0, 1), (-1 ,0), (0, -1))
-
-        self.__fill__(pawn, knight, bishop, rook, queen, king, Party.White)
-
-        pawn.set_team(Party.Black)
-        knight.set_team(Party.Black)
-        bishop.set_team(Party.Black)
-        rook.set_team(Party.Black)
-        queen.set_team(Party.Black)
-        king.set_team(Party.Black)
-
-        self.__fill__(pawn, knight, bishop, rook, queen, king, Party.Black)
+        self.__fill__(Party.White)
+        self.__fill__(Party.Black)
 
     def get_map(self):
         return copy.copy(self.__board)
@@ -71,44 +124,138 @@ class Board():
         return map
 
     def print_board(self):
+        headers = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+        table = [[None] * 8 for _ in range(8)]
         for i in range(8):
             for j in range(8):
-                if(self.__board[i][i] is not None):
+                bcolor = Back.BLACK if((i + j) % 2 == 0) else Back.BLUE
+                if(self.__board[i][j] is not None):
                     if(self.__board[i][j].party == Party.White):
-                        print("\033[34m{}".format(self.__board[i][j].name), end='')
+                        table[i][j]=f"{Fore.WHITE}{bcolor}{str(self.__board[i][j].name)}{Back.RESET}{Fore.WHITE}"
                     else:
-                        print("\033[31m{}".format(self.__board[i][j].name), end='')
+                        table[i][j]=f"{Fore.YELLOW}{bcolor}{str(self.__board[i][j].name)}{Back.RESET}{Fore.WHITE}"
                 else:
-                    print("\033[37m*", end='')
-            print('\033[37m\n', end='')
+                    table[i][j]=f"{Fore.WHITE}{bcolor}{'.'}{Back.RESET}"
+        print(tabulate(table, headers, tablefmt="pretty", showindex=list(range(1, 9))))
 
     def get_chessman(self, cell):
+        if(is_out_of_range(cell)):
+            return None
         return self.__board[cell[0]][cell[1]]
 
     def relocate(self, target, to):
+        if(self.__board[target[0]][target[1]].moved == False):
+            self.__board[target[0]][target[1]].moved = True
+            if(self.__board[target[0]][target[1]].name == 'p'):
+                self.__board[target[0]][target[1]
+                                        ].moves = self.__board[target[0]][target[1]].moves[:-1]
+        self.__board[to[0]][to[1]] = self.__board[target[0]][target[1]]
+        self.__board[target[0]][target[1]] = None
         return
+
+    def king_position(self, party):
+        for i in range(8):
+            for j in range(8):
+                if(self.__board[i][j] is not None and self.__board[i][j].name == "k"
+                        and self.__board[i][j].party == party):
+                    return (i, j)
+
+    def get_first_on_vector(self, place, vector):
+        place = (place[0] + vector[0], place[1] + vector[1])
+        if(is_out_of_range(place)):
+            return None
+        if(self.get_chessman(place) is not None):
+            return self.get_chessman(place)
+        else:
+            return self.get_first_on_vector(place, vector)
+
+
+def is_out_of_range(place):
+    return place[0] < 0 or place[0] > 7 or place[1] < 0 or place[1] > 7
+
 
 def move(board, current_party):
     try:
-        print("Your move:")
+        print("Your move (type help for more information):")
         place, to = interface.get_move(current_party)
-        chessanalytics.check_move(place, to, current_party)
+        chessanalytics.check_move(board, current_party, place, to)
     except exceptions.OutOfRange:
-        print("")
+        print("Your move is out of range. Try again")
+        move(board, current_party)
+        return
+    except exceptions.IncorrectMove:
+        print("Bad move. Try again")
+        move(board, current_party)
+        return
+    except exceptions.IncorrectFigure:
+        print("It is not your figure. Try again")
+        move(board, current_party)
+        return
+    except exceptions.LazyMove:
+        print("You must move. Try again")
+        move(board, current_party)
+        return
+    except exceptions.SelfHarm:
+        print("Do not eat yourself. Try again")
+        move(board, current_party)
+        return
+    except exceptions.Check:
+        print("Your move is resulting in check.Try again")
+        move(board, current_party)
+        return
+    except exceptions.Surrender:
+        raise exceptions.Surrender
+    except exceptions.Save:
+        print("Enter the name of the save:")
+        line = input()
+        original_stdout = sys.stdout
+        path = os.getcwd()
+        with open(os.path.join(path, os.path.join("saves", line + ".save")), 'w') as f:
+            sys.stdout = f
+            print(line)
+            print(int(current_party))
+            for i in range(8):
+                for j in range(8):
+                    temp = board.get_chessman((i, j))
+                    if(temp is not None):
+                        print(str(i), str(j), str(int(temp.party)),
+                              str(temp.name), str(temp.moved))
+                    else:
+                        print(str(i), str(j), "None")
+            sys.stdout = original_stdout
+        move(board, current_party)
+        return
+    except exceptions.Board:
+        board.print_board()
+        move(board, current_party)
+        return
+    # except Exception:
+    #     print("Unknown error. Try again")
+    #     move(board, current_party)
+    #     return
+    board.relocate(place, to)
 
 
 def start_game(board, current_party=Party.White):
     print("Game has started")
     while(True):
-        print("Moves {}".format(current_party))
         board.print_board()
-        move(board, current_party)
-        if(chessanalytics.is_mate(board, next_move(current_party))):
-            print("Mate.")
-            print("Player on {} wins the game".format(current_party))
-            return
+        if(chessanalytics.is_check(board, current_party)):
+            print("Check.")
+            if(chessanalytics.is_mate(board, current_party)):
+                print("Mate.")
+                print(
+                    "Player on {} wins the game".format(
+                        Party.string(next_move(current_party))))
+                return
         if(chessanalytics.is_stalemate(board, current_party)):
             print("Stalemate.")
-            print("Player on {} just stalemated the game".format(current_party))
+            print("Player on {} just stalemated the game".format(Party.string(current_party)))
             return
+        print("Moves {}".format(Party.string(current_party)))
+        try:
+            move(board, current_party)
+        except exceptions.Surrender:
+            print("Team {} resigned".format(Party.string(current_party)))
+            break
         current_party = next_move(current_party)
