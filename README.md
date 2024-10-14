@@ -1,5 +1,5 @@
 # python-chess
-Self-written chess on python3.X
+chess on python3.X
 Поддерживаются все правила шахмат кроме рокировки и взятия на подходе.
 ## Запуск
 Зайти в корневую папку и ввести в консоль `python main.py`
